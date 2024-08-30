@@ -86,7 +86,7 @@ const CreateEvent = () => {
     formData.append("city", city);
 
     try {
-      const response = await fetch(getAPIURL("api/v1/event/create-event"), {
+      const response = await fetch(getAPIURL("api/events/create-event"), {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

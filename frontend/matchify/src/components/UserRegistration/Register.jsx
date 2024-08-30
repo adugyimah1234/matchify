@@ -1,61 +1,41 @@
-import React, {useEffect, useState} from 'react';
-import {connect} from 'react-redux';
-import {Container, Grid, TextField, Button, Typography, Select, MenuItem, InputLabel} from '@mui/material';
-import {register} from '../Action';
-import {validateEmail, isValidString, validatePassword} from '../helper';
+import React, { useEffect, useState } from 'react';
+import { connect } from 'react-redux';
+import { Container, Grid, TextField, Button, Typography } from '@mui/material';
 import toast from "react-hot-toast";
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import axios from 'axios';
+import { validateEmail, validatePassword } from '../helper'; // Import the required validation functions
 
 const Register = (props) => {
     const navigate = useNavigate();
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
+    const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [location, setLocation] = useState('');
-    const [ageRange, setAgeRange] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
     const [errors, setErrors] = useState({
-        firstName: '',
-        lastName: '',
+        name: '',
         email: '',
-        password: '',
-        location: '',
-        confirmPassword: '',
-        age: ''
+        password: ''
     });
 
-    useEffect(()=>{
-        if(props.registerStatus === 200) {
+    useEffect(() => {
+        if (props.registerStatus === 200) {
             toast.success('Registration Successful');
             navigate("/user-interests");
         }
-    },[props.registerStatus])
+    }, [props.registerStatus]);
 
     const handleChange = (event) => {
-        const {name, value} = event.target;
-        const newErrors = {...errors};
-        if (name === 'firstName') {
-            setFirstName(value);
-            newErrors.firstName = isValidString(value) ? '' : 'First name is required.';
-        } else if (name === 'lastName') {
-            setLastName(value);
-            newErrors.lastName = isValidString(value) ? '' : 'Last name is required.';
+        const { name, value } = event.target;
+        const newErrors = { ...errors };
+        if (name === 'name') {
+            setName(value);
+            newErrors.name = value.trim() !== '' ? '' : 'Name is required.';
         } else if (name === 'email') {
             setEmail(value);
             newErrors.email = validateEmail(value) ? '' : 'Invalid Email';
         } else if (name === 'password') {
             setPassword(value);
             newErrors.password = validatePassword(value) ? '' : 'Password must contain 8 characters with at least one uppercase, one lowercase, one digit, and one special character.';
-        } else if (name === 'confirmPassword') {
-            setConfirmPassword(value);
-            newErrors.confirmPassword = password === value ? '' : 'Passwords do not match.';
-        } else if (name === 'location') {
-            setLocation(value);
-            newErrors.location = isValidString(value) ? '' : 'Select location.';
-        } else if (name === 'ageRange') {
-            setAgeRange(value);
-            newErrors.age = isValidString(value) ? '' : 'Select age range.';
         }
         setErrors(newErrors);
     };
@@ -63,19 +43,27 @@ const Register = (props) => {
     const handleSubmit = (event) => {
         event.preventDefault();
         const newErrors = {
-            firstName: isValidString(firstName) ? '' : 'First name is required.',
-            lastName: isValidString(lastName) ? '' : 'Last name is required.',
+            name: name.trim() !== '' ? '' : 'Name is required.',
             email: validateEmail(email) ? '' : 'Invalid Email',
             password: validatePassword(password) ? '' : 'Password must contain 8 characters with at least one uppercase, one lowercase, one digit, and one special character.',
-            location: isValidString(location) ? '' : 'Select location.',
-            confirmPassword: password === confirmPassword ? '' : 'Passwords do not match.',
-            age: isValidString(ageRange) ? '' : 'Select age range.',
         };
 
         setErrors(newErrors);
 
         if (isValidForm(newErrors)) {
-            props.register({firstName, lastName, email, password, location, ageRange});
+            axios.post('http://localhost:5000/api/users/register', {
+                name,
+                email,
+                password
+            })
+            .then(response => {
+                toast.success('Registration Successful');
+                navigate("/user-interests");
+            })
+            .catch(error => {
+                toast.error('Registration failed. Please try again.');
+                console.error(error);
+            });
         } else {
             toast.error('Please check the form for errors.');
         }
@@ -92,37 +80,23 @@ const Register = (props) => {
 
     return (
         <Container maxWidth="md">
-
             <Typography variant="h2" gutterBottom color="#d44e1c" className="roboto-medium" style={{
                 display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '5vh',
             }}>
-                Matchify
+                Collabora-Learn
             </Typography>
-
-            <form onSubmit={handleSubmit} style={{padding: 40, minWidth: "40vw"}}>
+            <form onSubmit={handleSubmit} style={{ padding: 40, minWidth: "40vw" }}>
                 <Grid container spacing={3}>
-                    <Grid item xs={6}>
+                    <Grid item xs={12}>
                         <TextField
-                            label="First Name"
+                            label="Name"
                             variant="outlined"
                             fullWidth
-                            name="firstName"
-                            value={firstName}
+                            name="name"
+                            value={name}
                             onChange={handleChange}
-                            error={!!errors.firstName}
-                            helperText={errors.firstName}
-                        />
-                    </Grid>
-                    <Grid item xs={6}>
-                        <TextField
-                            label="Last Name"
-                            variant="outlined"
-                            fullWidth
-                            name="lastName"
-                            value={lastName}
-                            onChange={handleChange}
-                            error={!!errors.lastName}
-                            helperText={errors.lastName}
+                            error={!!errors.name}
+                            helperText={errors.name}
                         />
                     </Grid>
                     <Grid item xs={12}>
@@ -138,7 +112,7 @@ const Register = (props) => {
                             helperText={errors.email}
                         />
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid item xs={12}>
                         <TextField
                             label="Password"
                             variant="outlined"
@@ -150,66 +124,6 @@ const Register = (props) => {
                             error={!!errors.password}
                             helperText={errors.password}
                         />
-                    </Grid>
-                    <Grid item xs={6}>
-                        <TextField
-                            label="Confirm Password"
-                            variant="outlined"
-                            fullWidth
-                            type="password"
-                            name="confirmPassword"
-                            value={confirmPassword}
-                            onChange={handleChange}
-                            error={!!errors.confirmPassword}
-                            helperText={errors.confirmPassword}
-                        />
-                    </Grid>
-                    <Grid item xs={12}>
-                        <InputLabel htmlFor="location">Location</InputLabel>
-                        <Select
-                            id="location"
-                            variant="outlined"
-                            fullWidth
-                            name="location"
-                            value={location}
-                            onChange={handleChange}
-                            error={!!errors.location}
-                        >
-                            <MenuItem value="Toronto">Toronto</MenuItem>
-                            <MenuItem value="Calgary">Calgary</MenuItem>
-                            <MenuItem value="Ottawa">Ottawa</MenuItem>
-                            <MenuItem value="Edmonton">Edmonton</MenuItem>
-                            <MenuItem value="Winnipeg">Winnipeg</MenuItem>
-                            <MenuItem value="Mississauga">Mississauga</MenuItem>
-                            <MenuItem value="Brampton">Brampton</MenuItem>
-                            <MenuItem value="Kitchener-Waterloo">Kitchener-Waterloo</MenuItem>
-                            <MenuItem value="Halifax">Halifax</MenuItem>
-                            <MenuItem value="Vancouver">Vancouver</MenuItem>
-                            <MenuItem value="Hamilton">Hamilton</MenuItem>
-                            <MenuItem value="London">London</MenuItem>
-                            <MenuItem value="Winnipeg">Winnipeg</MenuItem>
-                            <MenuItem value="Regina">Regina</MenuItem>
-                        </Select>
-                        {errors.location && <Typography variant="caption" color="error">{errors.location}</Typography>}
-                    </Grid>
-                    <Grid item xs={12}>
-                        <InputLabel htmlFor="ageRange">Age</InputLabel>
-                        <Select
-                            id="ageRange"
-                            variant="outlined"
-                            fullWidth
-                            name="ageRange"
-                            value={ageRange}
-                            onChange={handleChange}
-                        >
-                            <MenuItem value="18-24">18-24</MenuItem>
-                            <MenuItem value="25-34">25-34</MenuItem>
-                            <MenuItem value="35-44">35-44</MenuItem>
-                            <MenuItem value="45-54">45-54</MenuItem>
-                            <MenuItem value="55-64">55-64</MenuItem>
-                            <MenuItem value="65+">65+</MenuItem>
-                        </Select>
-                        {errors.age && <Typography variant="caption" color="error">{errors.age}</Typography>}
                     </Grid>
                     <Grid item xs={12}>
                         <Button variant="contained" color="primary" type="submit">
@@ -226,6 +140,6 @@ const mapStateToProps = (state) => ({
     registerStatus: state.registerStatus
 });
 
-const mapDispatchToProps = {register}
+const mapDispatchToProps = {};
 
 export default connect(mapStateToProps, mapDispatchToProps)(Register);

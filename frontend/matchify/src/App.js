@@ -16,14 +16,13 @@ import ViewEvent from "./components/ViewEvent/VEvent";
 
 export default function App() {
   return (
-
     <>
       <Router>
         <Routes>
           <Route path="/" element={<UserLogin />} />
           <Route path="/view-event" element={<ViewEvent />} />
-          <Route exact path="/register" element={<Register />} />
-          <Route exact path="/dashboard" element={<Dashboard />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/about" element={<About />} />
           <Route path="/user-interests" element={<UserInterestForm />} />
           <Route path="/create-event" element={<CreateEvent />} />
@@ -31,7 +30,7 @@ export default function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
-      <Toaster />
+      <Toaster /> {/* Toast notifications available globally */}
     </>
   );
 }
