@@ -11,7 +11,7 @@ const UserMatch = ({userDetails}) => {
     const navigationData = {id: userDetails.userId, fullName: userDetails.name};
 
     const goToChat = () => {
-        navigate('/chat', {state: {navigationData}});
+        navigate('/chat');
     }
 
     return (

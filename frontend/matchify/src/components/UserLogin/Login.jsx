@@ -36,14 +36,19 @@ const Login = () => {
         setLoading(true);
         try {
             const response = await axios.post(
-                'http://localhost:5000/api/users/login', // API URL
+                getAPIURL('api/users/login'), // Use utility function for API URL
                 { email, password },
                 { headers: { 'Content-Type': 'application/json' } }
             );
 
             if (response.status === 200) {
-                const { jwt } = response.data;
-                storeToken(jwt);
+                const { token, user } = response.data;
+
+                // Debugging logs
+                console.log('API Response:', response.data);
+                // console.log('Extracted Token:', token);
+
+                storeToken(token, user, user.id);
                 toast.success('Login successful!');
                 navigate('/dashboard');
             } else {
@@ -59,8 +64,18 @@ const Login = () => {
         }
     };
 
-    const storeToken = (token) => {
-        localStorage.setItem('token', token);
+    const storeToken = (token, user) => {
+        if (token) {
+            localStorage.setItem("token", token);
+            localStorage.setItem("user_id", user.id); // Store userId
+            localStorage.setItem("user", user); // Store userId
+            console.log('Token stored:', token); // Debugging log
+            console.log('Token stored:', user); // Debugging log
+            console.log('User_id stored:', user.id); // Debugging log
+            console.log('name stored:', user.name); // Debugging log
+        } else {
+            console.error('No token provided'); // Debugging log
+        }
     };
 
     return (

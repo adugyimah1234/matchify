@@ -2,38 +2,39 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
-import './index.css'; // Global CSS
-import App from './App'; // Root component of your app
-import { store, persistor } from './store'; // Redux store and persistor
-import reportWebVitals from './reportWebVitals'; // Performance measurement
-import 'bootstrap/dist/css/bootstrap.css'; // Bootstrap styles
-import { createTheme, ThemeProvider } from '@mui/material/styles'; // Material-UI theming
+import './index.css';
+import App from './App';
+import { store, persistor } from './store';
+import reportWebVitals from './reportWebVitals';
+import 'bootstrap/dist/css/bootstrap.css';
 
-// Create a Material-UI theme
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+
 const theme = createTheme({
     palette: {
       primary: {
-        main: '#d44e1c', // Primary color
+        main: '#d44e1c',
       },
       secondary: {
-        main: "#f9f1f0" // Secondary color
+        main: "#f9f1f0"
       }
     }
 });
 
-// Render the React app
 const root = ReactDOM.createRoot(document.getElementById('root'));
-
-// React.StrictMode is commented out, which can be uncommented for development to help identify issues
 root.render(
-    <Provider store={store}> {/* Provide Redux store to the app */}
-      <PersistGate loading={null} persistor={persistor}> {/* Handle Redux Persist rehydration */}
-        <ThemeProvider theme={theme}> {/* Apply Material-UI theme */}
-          <App /> {/* Render the root component */}
+ // <React.StrictMode>
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <ThemeProvider theme={theme}>
+          <App />
         </ThemeProvider>
       </PersistGate>
     </Provider>
+  //</React.StrictMode>
 );
 
-// Measure performance and send results to an analytics endpoint if needed
+// If you want to start measuring performance in your app, pass a function
+// to log results (for example: reportWebVitals(console.log))
+// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();

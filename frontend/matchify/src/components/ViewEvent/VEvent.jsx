@@ -84,8 +84,8 @@ function VEvent() {
   const postEvent = async (action) => {
     const url =
       action === "join"
-        ? getAPIURL("api/v1/event/join-event")
-        : getAPIURL("api/v1/event/leave-event");
+        ? getAPIURL("http://localhost:5000/api/v1/event/join-event")
+        : getAPIURL("http://localhost:5000/api/v1/event/leave-event");
 
     try {
       const response = await fetch(url, {

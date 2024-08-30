@@ -1,254 +1,206 @@
-import React, { useState } from "react";
-import {
-  Button,
-  TextField,
-  Grid,
-  Typography,
-  Paper,
-  Input,
-  IconButton,
-  Tooltip,
-} from "@mui/material";
-import PhotoCamera from "@mui/icons-material/PhotoCamera";
+import React, { useState } from 'react';
+import { Button, TextField, Typography, Container, Grid, CircularProgress } from '@mui/material';
+import axios from 'axios'; // Import Axios
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
-import withAuth from "../Auth/withAuth";
-import { getAPIURL } from "../../utils/common";
+import { getAPIURL } from '../../utils/common';
+import { useNavigate } from 'react-router-dom';
 
 const CreateEvent = () => {
   const navigate = useNavigate();
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [date, setDate] = useState("");
-  const [STime, setSTime] = useState("");
-  const [ETime, setETime] = useState("");
-  const [additionalInstructions, setAdditionalInstructions] = useState("");
-  const [address, setAddress] = useState("");
-  const [pincode, setPincode] = useState("");
-  const [city, setCity] = useState("");
-  const [image, setImage] = useState(null);
-
-  const handleTitleChange = (event) => {
-    setTitle(event.target.value);
-  };
-
-  const handleImageChange = (event) => {
-    setImage(event.target.files[0]);
-  };
-
-  const handleDescriptionChange = (event) => {
-    setDescription(event.target.value);
-  };
-
-  const handleCityChange = (event) => {
-    setCity(event.target.value);
-  };
-
-  const handleDateChange = (event) => {
-    setDate(event.target.value);
-  };
-
-  const handleSTimeChange = (event) => {
-    setSTime(event.target.value);
-  };
-
-  const handleETimeChange = (event) => {
-    setETime(event.target.value);
-  };
-
-  const handleAdditionalInstructionsChange = (event) => {
-    setAdditionalInstructions(event.target.value);
-  };
-
-  const handleAddressChange = (event) => {
-    setAddress(event.target.value);
-  };
-
-  const handlePincodeChange = (event) => {
-    setPincode(event.target.value);
-  };
+  const [eventName, setEventName] = useState('');
+  const [description, setDescription] = useState('');
+  const [eventDate, setEventDate] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [additionalInstructions, setAdditionalInstructions] = useState('');
+  const [address, setAddress] = useState('');
+  const [pincode, setPincode] = useState('');
+  const [city, setCity] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const token = localStorage.getItem("token");
+    setLoading(true);
 
-    const formData = new FormData();
-    formData.append("EventImage", image);
-    formData.append("eventName", title);
-    formData.append("description", description);
-    formData.append("eventDate", date);
-    formData.append("startTime", STime);
-    formData.append("endTime", ETime);
-    formData.append("additionalInstructions", additionalInstructions);
-    formData.append("address", address);
-    formData.append("pincode", pincode);
-    formData.append("city", city);
+
+    // Retrieve creatorId from local storage
+    const creatorId = localStorage.getItem('user_id');
+
+    if (!creatorId) {
+      toast.error('User ID not found. Please log in.');
+      setLoading(false);
+      return;
+    }
 
     try {
-      const response = await fetch(getAPIURL("api/events/create-event"), {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await axios.post(
+        getAPIURL('api/events/create-event'),
+        {
+          eventName,
+          description,
+          eventDate,
+          startTime,
+          endTime,
+          additionalInstructions,
+          address,
+          pincode,
+          city,
+          creatorId, // Include creatorId in the payload
         },
-        body: formData,
-      });
-      if (response.ok) {
-        toast.success("Event created successfully");
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`, // Include token for authorization
+          },
+        }
+      );
+
+      if (response.status === 201) {
+        toast.success('Event created successfully!');
         navigate("/dashboard");
+
+        // Optionally, redirect or reset form here
       } else {
-        toast.error("Failed to create event");
+        toast.error('Failed to create event.');
       }
     } catch (error) {
-      toast.error("Failed to create event");
-      console.error("Error creating event:", error);
+      console.error('An error occurred:', error);
+      toast.error('An error occurred. Please try again later.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <form onSubmit={handleSubmit} style={{ padding: 40, minWidth: "50vw" }}>
-        <Typography
-          variant="h5"
-          gutterBottom
-          style={{
-            textAlign: "left",
-            color: "#d44e1c",
-            paddingTop: "10px",
-            paddingBottom: "10px",
-          }}
-        >
-          Create Your Event
-        </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Title"
-              variant="outlined"
-              fullWidth
-              value={title}
-              onChange={handleTitleChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Date"
-              variant="outlined"
-              fullWidth
-              type="date"
-              value={date}
-              onChange={handleDateChange}
-              InputLabelProps={{
-                shrink: true,
-              }}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              label="Description"
-              variant="outlined"
-              fullWidth
-              multiline
-              rows={4}
-              value={description}
-              onChange={handleDescriptionChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Event Start Time"
-              variant="outlined"
-              fullWidth
-              type="time"
-              value={STime}
-              onChange={handleSTimeChange}
-              InputLabelProps={{
-                shrink: true,
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Event End Time"
-              variant="outlined"
-              fullWidth
-              type="time"
-              value={ETime}
-              onChange={handleETimeChange}
-              InputLabelProps={{
-                shrink: true,
-              }}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              label="Additional Instructions"
-              variant="outlined"
-              fullWidth
-              multiline
-              rows={4}
-              value={additionalInstructions}
-              onChange={handleAdditionalInstructionsChange}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              label="Address"
-              variant="outlined"
-              fullWidth
-              multiline
-              rows={2}
-              value={address}
-              onChange={handleAddressChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Pincode"
-              variant="outlined"
-              fullWidth
-              value={pincode}
-              onChange={handlePincodeChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="City"
-              variant="outlined"
-              fullWidth
-              value={city}
-              onChange={handleCityChange}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Input
-              style={{ display: "none" }}
-              accept="image/*"
-              id="icon-button-file"
-              type="file"
-              onChange={handleImageChange}
-            />
-            <label htmlFor="icon-button-file">
-              <Tooltip title="Upload Image">
-                <IconButton
-                  color="primary"
-                  aria-label="upload picture"
-                  component="span"
-                >
-                  <PhotoCamera />
-                </IconButton>
-              </Tooltip>
-            </label>
-          </Grid>
-          <Grid item xs={12}>
-            <Button variant="contained" color="primary" type="submit">
-              Create Event
-            </Button>
-          </Grid>
+    <Container maxWidth="xl">
+      <Grid container justifyContent="center" alignItems="center" spacing={2}>
+        <Grid item xs={12}>
+          <Typography variant="h2" gutterBottom color="#d44e1c" style={{
+            display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '5vh',
+          }}>
+            Create Event
+          </Typography>
+
+          <div className="create-event-container">
+            <form onSubmit={handleSubmit} style={{
+              marginTop: '10vh', width: '50vw', padding: 40
+            }}>
+              <TextField
+                fullWidth
+                type="text"
+                name="eventName"
+                label="Event Name"
+                variant="outlined"
+                margin="normal"
+                value={eventName}
+                onChange={(e) => setEventName(e.target.value)}
+                required
+              />
+              <TextField
+                fullWidth
+                type="text"
+                name="description"
+                label="Description"
+                variant="outlined"
+                margin="normal"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+              />
+              <TextField
+                fullWidth
+                type="date"
+                name="eventDate"
+                label="Event Date"
+                variant="outlined"
+                margin="normal"
+                InputLabelProps={{ shrink: true }}
+                value={eventDate}
+                onChange={(e) => setEventDate(e.target.value)}
+                required
+              />
+              <TextField
+                fullWidth
+                type="time"
+                name="startTime"
+                label="Start Time"
+                variant="outlined"
+                margin="normal"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                required
+              />
+              <TextField
+                fullWidth
+                type="time"
+                name="endTime"
+                label="End Time"
+                variant="outlined"
+                margin="normal"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                required
+              />
+              <TextField
+                fullWidth
+                type="text"
+                name="additionalInstructions"
+                label="Additional Instructions"
+                variant="outlined"
+                margin="normal"
+                value={additionalInstructions}
+                onChange={(e) => setAdditionalInstructions(e.target.value)}
+              />
+              <TextField
+                fullWidth
+                type="text"
+                name="address"
+                label="Address"
+                variant="outlined"
+                margin="normal"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                required
+              />
+              <TextField
+                fullWidth
+                type="text"
+                name="pincode"
+                label="Pincode"
+                variant="outlined"
+                margin="normal"
+                value={pincode}
+                onChange={(e) => setPincode(e.target.value)}
+                required
+              />
+              <TextField
+                fullWidth
+                type="text"
+                name="city"
+                label="City"
+                variant="outlined"
+                margin="normal"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                required
+              />
+              <Button 
+                type="submit" 
+                variant="contained" 
+                color="primary" 
+                fullWidth 
+                style={{ marginTop: 20 }}
+                disabled={loading}
+              >
+                {loading ? <CircularProgress size={24} /> : 'Create Event'}
+              </Button>
+            </form>
+          </div>
         </Grid>
-      </form>
-    </div>
+      </Grid>
+    </Container>
   );
 };
 
-export default withAuth(CreateEvent);
+export default CreateEvent;
